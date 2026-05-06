@@ -1,0 +1,36 @@
+name: Daily Python Publisher
+
+on:
+  schedule:
+    # This cron schedule runs at 00:00 UTC every day. 
+    # (Adjust the cron timing if you prefer a specific IST time)
+    - cron: '0 0 * * *'
+  workflow_dispatch: # This allows you to click a button to run it manually for testing!
+
+permissions:
+  contents: write # Grants the action permission to push code
+
+jobs:
+  publish-daily-code:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Run publishing script
+        run: python auto_commit.py
+
+      - name: Commit and push changes
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          
+          # Only commit if there are actual changes (prevents errors when staging is empty)
+          git diff --quiet && git diff --staged --quiet || git commit -m "Auto-published a daily Python basic script"
+          git push
